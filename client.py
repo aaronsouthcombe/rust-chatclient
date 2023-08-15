@@ -1,16 +1,13 @@
 import asyncio
+import sys
 
 
 async def send_messages(writer):
-    name = input("Enter your name: ")
-    writer.write(name.encode() + b"\n")
-    await writer.drain()
-
     while True:
-        destination = input("Enter recipient name(s) separated by commas: ")
-        message = input("Enter message: ")
-        formatted_message = f"{destination}: {message}"
-        writer.write(formatted_message.encode() + b"\n")
+        message = await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+        if not message:
+            break
+        writer.write(message.encode() + b"\n")
         await writer.drain()
 
 
@@ -24,7 +21,7 @@ async def receive_messages(reader):
 
 async def main():
     try:
-        reader, writer = await asyncio.open_connection('10.10.100.136', 8080)
+        reader, writer = await asyncio.open_connection('127.0.0.1', 8080)
         print("Connected to the Rust server.")
 
         send_task = asyncio.create_task(send_messages(writer))
